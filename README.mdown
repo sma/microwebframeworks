@@ -23,7 +23,6 @@ Im Prinzip stellt newf ein `Request`- und ein `Response`-Objekt zur Verfügung u
 
 Hier ist ein Beispiel:
 
-    [code=py]
     import newf
     
     def hello(request, name="Welt"):
@@ -33,7 +32,6 @@ Hier ist ein Beispiel:
         (r'^/hello$', hello),
         (r'^/hello/(?P<name>.*)$', hello),
     ))
-    [/code]
 
 Sympatisch finde ich, dass SQLalchemy (was IMHO überbewertet wird) explizit nicht erwähnt wird. Autumn ist ein ORM vom Autor selbst. Leider ist Dokumentation Mangelware, sodass ich nur sagen kann, dass das Query-API ähnlich zu dem von Django aussieht und Modelle ebenfalls ähnlich definiert werden. Es gibt jedoch keine Manager, sondern man baut explizit Query-Objekte. Relationen sehen irgendwie unfertig aus.
 
@@ -73,18 +71,16 @@ Ich rate mal, mnml steht für minimal. Dabei ist es der große Bruder von newf, 
 
 Hier ist ein Beispiel:
 
-    [code=py]
     import mnml
-
+    
     class Hello(mnml.RequestHandler):
         def GET(self, name="World"):
             return mnml.HttpResponse("Hello, %s" % name)
-
+            
     application = mnml.TokenBasedApplication((
         ('/hello', Hello),
         ('/hello/:name', Hello),
     ))
-    [/code]
 
 Enttäuschend ist, dass `TokenBasedApplication` gar nicht funktioniert. Da fehlt ein `groups = matches.groups()` im Code. Das musste ich erst reparieren. Echte Vorteile gegenüber newf sind auch nicht auszumachen. Warum das jetzt 250 Zeile mehr Code braucht, ist mir unklar.
 
@@ -106,7 +102,6 @@ Sinatra wird als Inspirationsquelle genannt, aber wird es erreicht? Sinatra beha
 
 So sieht mein Hallo-Welt-Beispiel mit itty aus:
 
-    [code=py]
     from itty import get, run_itty
     
     @get("/hello")
@@ -115,7 +110,6 @@ So sieht mein Hallo-Welt-Beispiel mit itty aus:
         return "Salve, %s!" % name
     
     run_itty()
-    [/code]
 
 Der `get`-Decorator (es gibt auch welche für POST, PUT, DELETE) ist nett, braucht aber einen regulären Ausdruck. Die `:name`-Notation beginnt mir auch zu gefallen.
 
@@ -141,17 +135,15 @@ Positiv erwähnt werden muss die umfangreiche Dokumentation.
 
 Hier ist das obligatorische Beispiel.
 
-    [code=py]
     from juno import *
-
+    
     init({'use_templates': False, 'use_db': False})
-
+    
     @get(['/hello', '/hello/:name'])
     def hello(web, name="qo'"):
         return "%s nuqneH" % name
-
+    
     run()
-    [/code]
 
 Wie bei itty gibt es einen `get`-Dekorator (und die Varianten für andere HTTP-Methoden). Und es gibt wieder Rails-style Pattern-Matching statt regulärer Ausdrücke. Das man zwei Routen in einer Liste zusammenfassen kann, ist eine gute Idee.
 
@@ -159,7 +151,6 @@ Man muss in `init` allerdings explizit Templates und Datenbank abschalten, wenn 
 
 Für den Datenbank-Zugriff hat sich Juno ein etwas merkwürdiges Verfahren mit Factory-Funktionen ausgedacht. Damit wird von der etwas schwerfälligen Modellbeschreibung von SQLalchemy abstrahiert. Das leakt aber sofort wieder durch die Abstraktion, wenn es um Queries geht. Auch der Weg, wie man zusätzliche Methoden in seine "Klassen" bringt, ist IMHO hässlich.
 
-    [code=py]
     Page = juno.Model('Page',
         title='string', 
         text='text', 
@@ -169,14 +160,11 @@ Für den Datenbank-Zugriff hat sich Juno ein etwas merkwürdiges Verfahren mit F
     page = Page(title="Home", text="...", last_updated=datetime.now())
     page.add()
     page.save()
-    [/code]
 
 Hingegen gefällt mir wieder, wie ich mit zwei Zeilen meine Template-Engine in Juno einbauen kann:
 
-    [code=py]
     config('get_template_handler', lambda path: T.get(path))
     config('render_template_handler', lambda tmpl, **kwargs: T.render(tmpl, kwargs))
-    [/code]
 
 Die "lambdas" sind notwendig, weil ich erst nach dieser Definition meine Klasse `T` definiere. Andernfalls gäbe es einen Fehler. Ungewöhnlich finde ich, dass `template` und `redirect` zwei globale "Funktionen" sind, die in den Views funktionieren, obwohl diese nichts zurückgeben. Ansonsten sieht das (nicht ohne Zufall) fast genauso wie itty und all die anderen Rahmenwerke aus.
 
@@ -192,20 +180,18 @@ Djng ist übrigens ein einzige Rahmenwerk, das in mehr als einer Datei definiert
 
 Das klassische Beispiel:
 
-[code=py]
-import djng
-
-def hello(request, name="Welt"):
-    return djng.Response("Hallo, %s!" % name)
-
-app = djng.Router(
-    (r'^hello$', hello),
-    (r'^hello/(+*)$', hello),
-)
-
-if __name__ == '__main__':
-    djng.serve(app, '0.0.0.0', 8000)
-[/code]
+    import djng
+    
+    def hello(request, name="Welt"):
+        return djng.Response("Hallo, %s!" % name)
+    
+    app = djng.Router(
+        (r'^hello$', hello),
+        (r'^hello/(+*)$', hello),
+    )
+    
+    if __name__ == '__main__':
+        djng.serve(app, '0.0.0.0', 8000)
 
 Viel mehr lässt sich aber glaube ich noch nicht sagen, denn erstens ist alles undokumentiert und offenbar steht das Schreiben von Kommentaren im Quelltext seit neustem unter Strafe und zweitens alles noch nicht fertig und sehr im Fluss. Daher spare ich mir meinen Wiki.
 
@@ -220,10 +206,7 @@ Die 4 Systeme (außer Djng) unterscheiden sich nur marginal. Alle kapseln WSGI-A
 Spannender ist vielleicht, was sie nicht bieten -- und was ich mir eigentlich wünschen würde: Kein Rahmenwerk traut sich, yet-another-template-engine zu bauen, auch wenn sie alle yet-another-web-framework sind. Mein Beispiel zeigt jedoch, dass das auch in wenigen Zeilen  nicht weiter schwer ist. Keiner kümmert sich um Formulare und deren einfache Verarbeitung. Die Konventionen von Rails, anhand von Namen wie `page[author][][name]` automatisch komplexe Datenstrukturen zu bauen, die dann zufällig genau kompatibel zum ORM sind, um daraus einfach Objekte zu erzeugen, finde ich gelungen. Das hin- und hergequote von URLs ist auch lästig und hier sollte es Abstraktionen geben. Um nochmals Rails zu erwähnen: Dort werden automatisch Hilfsfunktionen für URLs generiert. Unterstützung für REST wäre heutzutage auch hilfreich.
 
 
-Allen Code findet man übrigens hier: <http://github.com/sma/microwebframeworks/tree/master>.
-
-Stefan
-
+Nachtrag:
 
 Resort
 ======
@@ -232,25 +215,22 @@ Größe unbekannt. Imports re und cgi. WSGI-basiert. Kein ORM, aber Unterstützu
 
 So sähe das Hallo-Welt-Beispiel aus:
 
-    [code=py]
     class Hello(resort.Component):
         def __init__(self, name="World"):
             self.name = name
-
+        
         def render(self, html):
             html.text("Hello, ", self.name)
-
+    
     if __name__ == '__main__':
         resort.route("/hello", lambda: Hello())
         resort.route("/hello/:name", lambda name: Hello(name))
         resort.run()
-    [/code]
 
 Eine Komponente kann sich mittels `render` darstellen. HTML erzeugte ich mit passenden Methoden des `html`-Objekts. Resort kennt eigentlich keine benannten URLs, sondern generiert alles automatisch. Einsprungpunkte müssen daher explizit definiert werden. Das `lambda` sorgt dafür, dass Komponenten erst dann erzeugt werden, wenn sie auch benötigt werden -- dafür dann aber auch jedes Mal wieder, wenn die URL aufgerufen wird. Das könnte auch eine dumme Idee sein.
 
 Das Wiki-Beispiel benötigt keine Template, allerdings ein etwas anderes `Wiki`-Objekt, welches nicht einfach nur Strings sondern `Page`-Objekte zurückgibt, die wissen, aus welchem Wiki sie stammen und sich selbst speichern können. Die `Index`-Komponente bildet den Einsprungpunkt und verlinkt auf alle Seiten.
 
-    [code=py]
     class Index(resort.Component):
         def __init__(self, wiki):
             self.wiki = wiki
@@ -260,15 +240,14 @@ Das Wiki-Beispiel benötigt keine Template, allerdings ein etwas anderes `Wiki`-
             with html.unorderd_list():
                 for page in self.wiki.pages():
                     html.list_item(html.anchor(call=html.bind(self.view, page), text=page))
-
+        
         def view(self, name):
             self.goto(View(self.wiki.get_page(name)))
-    [/code]
 
 Über `goto` kann ich die aktuell angezeigte Komponente austauschen. Ein `View` stellt dann die übergebene Seite dar. Mit `bind` kann ich zu einer Funktion eine neue Funktion definieren, die die übergebenen Argumente als eigene Argumente bekommt. So definiere ich für jeden Seitennamen eine Funktion, die `view` passend aufruft. Diese Funktion wiederum wird vom Rahmenwerk aufgerufen, wenn der Benutzer auf einen Link klickt.
 
-Die `View`-Komponente kennt schließlich noch eine `Edit`-Komponente, mit der man eine Seite bearbeiten kann und die sich wie ein Dialog über der Seite öffnet und das Formular mit dem Eingabefeld für den Text anzeigt.
+Die `View`-Komponente kennt schließlich noch eine `Edit`-Komponente, mit der man eine Seite bearbeiten kann und die sich wie ein Dialog über der Seite öffnet und das Formular mit dem Eingabefeld für den Text anzeigt. [Quelltext](http://github.com/sma/microwebframeworks/tree/master/resort-wiki.py).
 
-Den Code findet man hier: <http://github.com/sma/microwebframeworks/tree/master/resort-wiki.py>.
+Allen Code (und diesen Text) findet man übrigens hier: <http://github.com/sma/microwebframeworks/tree/master>.
 
 Stefan
